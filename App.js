@@ -118,6 +118,8 @@ const linking = {
           MyProfileUpdatePassword: 'password',
           Login: {
             path: 'login',
+            // allows the route to show without its direct parents path 
+            // ie, rather than /profile/login show /login
             exact: true,
           },
           CreateAccount: {
@@ -150,16 +152,29 @@ const ProfileDrawerComponent = ()=> {
 }
 const ProfileStackComponent = ()=> {
   return (
-    <ProfileStack.Navigator>
+    <ProfileStack.Navigator screenOptions={{ gestureEnabled: true }}>
       <ProfileStack.Screen name="MyProfile" component={ProfilePage} />
       <ProfileStack.Screen name="MyProfileUpdate" component={UpdateProfilePage} />
     </ProfileStack.Navigator>
   )
 }
+
+/** screenOptions={{ gestureEnabled: true }}
+ * enables swipe to go back gestures on android -> its enabled on ios
+ */
 export default function App() {
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Home" 
+                        screenOptions={{ 
+                          gestureEnabled: true,
+                          // hides previous screen name from back button in ios
+                          headerBackTitleVisible: false,
+                        }}
+                        // ensure header stays at the top without animating from the bottom
+                        // android
+                        headerMode='float'
+      >
         <Stack.Screen name="Home" component={HomePage} />
         <Stack.Screen name="Details" component={BusinessDetailsPage} />
 
