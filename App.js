@@ -1,9 +1,54 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, Platform } from 'react-native';
+
+// must be imported to avoid crashes in production
+import 'react-native-gesture-handler';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+
+// for navigation, supports web a tags
+import { Link } from '@react-navigation/native'
+{/* <Link to={{ screen: 'Profile', params: { id: 'jane' } }}> */}
+  // Go to Jane's profile
+// </Link>
+
+import { useLinkProps } from '@react-navigation/native';
+
+// ...
+
+const LinkButton = ({ to, action, children, ...rest }) => {
+  const { onPress, ...props } = useLinkProps({ to, action });
+
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  if (Platform.OS === 'web') {
+    // It's important to use a `View` or `Text` on web instead of `TouchableX`
+    // Otherwise React Native for Web omits the `onClick` prop that's passed
+    // You'll also need to pass `onPress` as `onClick` to the `View`
+    // You can add hover effects using `onMouseEnter` and `onMouseLeave`
+    return (
+      <View
+        onClick={onPress}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{ transitionDuration: '150ms', opacity: isHovered ? 0.5 : 1 }}
+        {...props}
+        {...rest}
+      >
+        <Text>{children}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <TouchableOpacity onPress={onPress} {...props} {...rest}>
+      <Text>{children}</Text>
+    </TouchableOpacity>
+  );
+};
 
 
 
@@ -20,7 +65,20 @@ function HomePage({ navigation }) {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text>Home Page</Text>
       <Button title="Go" onPress={()=> navigation.navigate('Details', { id: 233 })} ></Button>
-      <Button title="MyProfile" onPress={()=> navigation.navigate('Profile', { screen: 'MyProfile' })} ></Button>    
+      <Button title="MyProfile" onPress={()=> navigation.navigate('Profile', { screen: 'MyProfile' })} ></Button>   
+
+      <Link to='/create-account'>
+        <View>
+          <Text>Create Account</Text>
+        </View>
+      </Link> 
+      <Link to='/profile/my'>
+        My profile
+      </Link> 
+
+      <LinkButton to='/profile/my'>
+        My profile
+      </LinkButton> 
     </View>
   );
 }
@@ -165,15 +223,18 @@ const ProfileStackComponent = ()=> {
 export default function App() {
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator initialRouteName="Home" 
-                        screenOptions={{ 
-                          gestureEnabled: true,
-                          // hides previous screen name from back button in ios
-                          headerBackTitleVisible: false,
-                        }}
-                        // ensure header stays at the top without animating from the bottom
-                        // android
-                        headerMode='float'
+      <Stack.Navigator 
+        initialRouteName="Home" 
+        screenOptions={{ 
+          gestureEnabled: true,
+          // hides previous screen name from back button in ios
+          headerBackTitleVisible: false,
+        }}
+        // ensure header stays at the top without animating from the bottom
+        // android
+        headerMode='float'
+        // a component to show before RN resolves the initial deep link
+        fallback={<Text> loading </Text>}
       >
         <Stack.Screen name="Home" component={HomePage} />
         <Stack.Screen name="Details" component={BusinessDetailsPage} />
